@@ -123,7 +123,7 @@ Working and deployed, but young. Honest state:
 - **Not implemented:** per-client resource limits. A client subscribing to account
   streams can drive memory hard. Do not expose a reader to untrusted callers yet.
 
-312 passing tests, 2 ignored. `cargo test --workspace`.
+323 passing tests, 2 ignored. `cargo test --workspace`.
 
 ## License
 
