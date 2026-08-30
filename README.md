@@ -1,5 +1,7 @@
 # Sillage
 
+[![CI](https://github.com/sunkuu7/sillage/actions/workflows/ci.yml/badge.svg)](https://github.com/sunkuu7/sillage/actions/workflows/ci.yml)
+
 Record Solana's Geyser stream. Replay it later through the same Yellowstone gRPC
 protocol, paced to the original wall clock, with unmodified clients.
 
@@ -121,7 +123,7 @@ Working and deployed, but young. Honest state:
 - **Not implemented:** per-client resource limits. A client subscribing to account
   streams can drive memory hard. Do not expose a reader to untrusted callers yet.
 
-305 tests. `cargo test --workspace`.
+312 passing tests, 2 ignored. `cargo test --workspace`.
 
 ## License
 

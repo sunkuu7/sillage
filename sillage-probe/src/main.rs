@@ -69,7 +69,11 @@ struct Cli {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    let log_level = if cli.verbose { Level::DEBUG } else { Level::INFO };
+    let log_level = if cli.verbose {
+        Level::DEBUG
+    } else {
+        Level::INFO
+    };
     tracing_subscriber::fmt().with_max_level(log_level).init();
 
     let req = build_subscribe_request(&cli)?;
@@ -248,8 +252,10 @@ fn build_subscribe_request(cli: &Cli) -> Result<SubscribeRequest> {
     }
 
     if has_block {
-        req.blocks_meta
-            .insert("probe".to_string(), SubscribeRequestFilterBlocksMeta::default());
+        req.blocks_meta.insert(
+            "probe".to_string(),
+            SubscribeRequestFilterBlocksMeta::default(),
+        );
     }
 
     req.from_slot = cli.from_slot;
@@ -364,7 +370,10 @@ mod tests {
         assert!(!req.accounts.is_empty());
         let filter = req.accounts.get("probe").unwrap();
         assert_eq!(filter.account, vec!["11111111111111111111111111111111"]);
-        assert_eq!(filter.owner, vec!["TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"]);
+        assert_eq!(
+            filter.owner,
+            vec!["TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"]
+        );
         assert!(filter.filters.is_empty());
         assert_eq!(filter.nonempty_txn_signature, None);
     }

@@ -16,7 +16,7 @@ ENDPOINT=https://replay.sillage.sh X_TOKEN=<token> PRINT_EVERY=100 node index.js
 
 | Env | Default | Notes |
 |---|---|---|
-| `ENDPOINT` | `http://127.0.0.1:10000` | `http://` — the demo endpoint is plaintext h2c |
+| `ENDPOINT` | `http://127.0.0.1:10000` | Default targets a local reader over plaintext h2c. The public demo at `https://replay.sillage.sh` terminates TLS — use `https://` |
 | `X_TOKEN` | *(required)* | Sent as the `x-token` header |
 | `PROGRAM` | *(none)* | Restrict to txs touching a pubkey |
 | `PRINT_EVERY` | `1` | Print every Nth signature |

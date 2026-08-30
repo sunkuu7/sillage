@@ -41,7 +41,12 @@ pub fn summarize(update: &SubscribeUpdate) -> (UpdateKind, u64, Option<u64>, Str
         Some(UpdateOneof::Pong(_)) => (UpdateKind::Pong, bytes, None, "pong".to_string()),
         Some(UpdateOneof::Slot(slot)) => {
             warn!(slot = slot.slot, "received unexpected slot update");
-            (UpdateKind::Slot, bytes, Some(slot.slot), format!("slot={}", slot.slot))
+            (
+                UpdateKind::Slot,
+                bytes,
+                Some(slot.slot),
+                format!("slot={}", slot.slot),
+            )
         }
         Some(UpdateOneof::TransactionStatus(ts)) => {
             let sig = bs58::encode(&ts.signature).into_string();
@@ -58,7 +63,10 @@ pub fn summarize(update: &SubscribeUpdate) -> (UpdateKind, u64, Option<u64>, Str
     }
 }
 
-fn summarize_tx(tx: &SubscribeUpdateTransaction, bytes: u64) -> (UpdateKind, u64, Option<u64>, String) {
+fn summarize_tx(
+    tx: &SubscribeUpdateTransaction,
+    bytes: u64,
+) -> (UpdateKind, u64, Option<u64>, String) {
     let slot = tx.slot;
     let sig = tx
         .transaction

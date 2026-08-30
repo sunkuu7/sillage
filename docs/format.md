@@ -14,6 +14,34 @@ stored as three sibling objects sharing a base name:
 
 There are three streams: `tx`, `acct`, `block`. A chunk never mixes them.
 
+## Object naming
+
+`<base>` is not free-form. The writer and the reader's catalog scan derive it the
+same way, and a chunk stored under any other key is invisible to the reader:
+
+```
+chunks/<stream>/<start_slot>-<end_slot_exclusive>.<ext>
+```
+
+Both slot numbers are zero-padded to 12 digits, so lexical order matches slot
+order. `<end_slot_exclusive>` is the `end_slot_exclusive` field from the sidecar,
+not the last slot actually present.
+
+```
+chunks/tx/000315480000-000315481000.zst
+chunks/tx/000315480000-000315481000.meta.json
+chunks/tx/000315480000-000315481000.idx
+```
+
+The reader's local NVMe cache uses this same layout, rooted at its storage path
+instead of the bucket.
+
+Chunks are discovered by listing `.meta.json` objects and parsing the stem, so a
+chunk whose sidecar is missing is not catalogued even when its payload and index
+are both present. **Write the payload and index first and the sidecar last** — a
+partially uploaded chunk is then never picked up. The writer relies on this
+ordering, uploading `.zst`, `.idx`, `.meta.json` in that order.
+
 ## Payload — `.zst`
 
 zstd-compressed. Decompressed, it is a flat sequence of length-prefixed frames:
@@ -121,6 +149,8 @@ Minimum to be readable by `sillage-reader`:
 2. Write a `.meta.json` with `schema_version: 1` and honest slot bounds.
 3. Write a `.idx` carrying the dimensions listed above for that stream, or omit
    the file entirely and accept that filters degrade to full scans.
+4. Store all three under `chunks/<stream>/<start>-<end_exclusive>.<ext>` with both
+   slots zero-padded to 12 digits, writing the `.meta.json` last.
 
 The authoritative definitions live in `sillage-common/src/chunk.rs` and
 `sillage-common/src/idx.rs`. Where this document and the code disagree, the code

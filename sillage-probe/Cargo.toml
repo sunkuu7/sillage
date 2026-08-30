@@ -3,6 +3,9 @@ name = "sillage-probe"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "gRPC test client for sillage replay endpoints."
 
 [dependencies]
 yellowstone-grpc-client = { workspace = true }

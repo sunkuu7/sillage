@@ -3,6 +3,9 @@ name = "sillage-reader"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Replays recorded Solana Geyser chunks over the Yellowstone gRPC API."
 
 [dependencies]
 tokio = { workspace = true, features = ["full"] }
@@ -13,7 +16,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
-sillage-common = { path = "../sillage-common" }
+sillage-common = { path = "../sillage-common", version = "0.1.0" }
 tokio-stream = { workspace = true }
 aws-sdk-s3 = { workspace = true }
 aws-config = { workspace = true }
