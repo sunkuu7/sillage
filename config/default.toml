@@ -1,0 +1,64 @@
+[server]
+listen_addr = "0.0.0.0:10000"
+
+# Serve gRPC over TLS. Leave disabled when terminating TLS at a proxy.
+[server.tls]
+enabled = false
+cert_path = ""
+key_path = ""
+
+[r2]
+bucket = ""
+region = "auto"
+endpoint_url = "https://example.r2.cloudflarestorage.com"
+access_key_id = ""
+secret_access_key = ""
+
+[storage]
+nvme_path = "/data"
+
+[log]
+level = "info"
+format = "json"
+
+[writer]
+slots_per_chunk = 1000
+out_of_order_tolerance_slots = 100
+max_open_chunks = 4
+channel_capacity = 8192
+
+[uploader]
+scan_interval_secs = 5
+max_concurrent_uploads = 4
+retry_attempts = 3
+retry_initial_delay_ms = 1000
+local_retention_hours = 24
+disk_pressure_warn_pct = 80
+
+[reader]
+scan_interval_secs = 30
+max_concurrent_downloads = 4
+local_retention_hours = 24
+retry_attempts = 3
+retry_initial_delay_ms = 1000
+decoded_cache_bytes = 805306368  # 768 MiB decoded-chunk LRU budget
+index_cache_bytes = 134217728  # 128 MiB parsed-index LRU budget
+follow_idle_timeout_secs = 900  # close a caught-up subscriber after this long with no new chunks
+max_connections_total = 256     # concurrent subscribers server-wide
+max_connections_per_token = 16  # concurrent subscribers per auth token
+
+[reader.pacing]
+enabled = true
+speed_multiplier = 1.0
+lag_warn_ms = 5000
+lag_drop_ms = 30000
+
+[reader.metrics]
+enabled = true
+listen_addr = "0.0.0.0:10001"
+
+# [geyser]
+# endpoint = "http://localhost:10000"
+# x_token = ""
+# commitment = "confirmed"
+# max_message_size_bytes = 67108864
