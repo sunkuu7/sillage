@@ -1,0 +1,35 @@
+[package]
+name = "sillage-writer"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+tokio = { workspace = true, features = ["full"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+sillage-common = { path = "../sillage-common" }
+futures = { workspace = true }
+yellowstone-grpc-client = { workspace = true }
+yellowstone-grpc-proto = { workspace = true }
+tonic = { workspace = true }
+tokio-stream = { workspace = true }
+prost = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+roaring = { workspace = true }
+rmp-serde = { workspace = true }
+zstd = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true }
+rustix = { workspace = true }
+
+[dev-dependencies]
+filetime = { workspace = true }
+aws-smithy-mocks = { workspace = true }
+aws-smithy-types = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
+tempfile = { workspace = true }
+tracing-test = "0.2"
