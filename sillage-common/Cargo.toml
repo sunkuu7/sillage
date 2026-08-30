@@ -1,0 +1,21 @@
+[package]
+name = "sillage-common"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+config = { workspace = true }
+tokio-util = { workspace = true }
+tokio = { workspace = true, features = ["rt", "signal", "macros"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+roaring = { workspace = true }
+rmp-serde = { workspace = true }
+yellowstone-grpc-proto = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+tempfile = { workspace = true }
