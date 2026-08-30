@@ -128,7 +128,7 @@ async fn main() -> Result<()> {
                             println!("{summary}");
                         }
 
-                        if stats.total_msgs % cli.progress_every as u64 == 0 {
+                        if stats.total_msgs.is_multiple_of(cli.progress_every as u64) {
                             info!("received {} messages", stats.total_msgs);
                         }
 

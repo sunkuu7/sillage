@@ -112,7 +112,7 @@ impl Lane {
                                     return Err(e);
                                 }
                                 count += 1;
-                                if count % 10_000 == 0 {
+                                if count.is_multiple_of(10_000) {
                                     info!(stream = %stream_label, count, "processed messages");
                                 }
                             }

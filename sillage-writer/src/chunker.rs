@@ -589,7 +589,7 @@ mod tests {
         let chunk = chunker.open.get(&0u64).unwrap();
         let account_dim = chunk.index.dims.get(DIM_ACCOUNT_KEY).unwrap();
         assert_eq!(account_dim.len(), 3);
-        for (_, bitmap) in account_dim.iter() {
+        for bitmap in account_dim.values() {
             assert_eq!(bitmap.len(), 1);
         }
     }

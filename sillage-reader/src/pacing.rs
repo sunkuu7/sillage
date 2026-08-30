@@ -75,7 +75,7 @@ impl Pacer {
         if lag >= self.lag_warn {
             let should_warn = self
                 .last_warn
-                .map_or(true, |t| now.duration_since(t) > Duration::from_secs(10));
+                .is_none_or(|t| now.duration_since(t) > Duration::from_secs(10));
             if should_warn {
                 self.last_warn = Some(now);
                 return LagAction::Warn { lag };
