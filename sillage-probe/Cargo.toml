@@ -1,0 +1,19 @@
+[package]
+name = "sillage-probe"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+yellowstone-grpc-client = { workspace = true }
+yellowstone-grpc-proto = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tokio-stream = { workspace = true }
+tonic = { workspace = true }
+futures = { workspace = true }
+clap = { workspace = true, features = ["derive", "env"] }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+bs58 = { workspace = true }
+prost = { workspace = true }

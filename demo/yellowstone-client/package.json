@@ -1,0 +1,14 @@
+{
+  "name": "sillage-yellowstone-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Standard Yellowstone gRPC client streaming transaction signatures from a sillage-reader replay endpoint",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@triton-one/yellowstone-grpc": "^1.3.0",
+    "bs58": "^6.0.0"
+  }
+}
