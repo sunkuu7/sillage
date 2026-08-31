@@ -15,12 +15,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # yellowstone-grpc-proto compiles .proto files in its build script.
       - name: Install protoc
         run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Resolve pinned toolchain
+        id: rust
+        run: echo "channel=$(sed -n 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+
+      - uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: ${{ steps.rust.outputs.channel }}
           components: rustfmt, clippy
 
       - uses: Swatinem/rust-cache@v2
