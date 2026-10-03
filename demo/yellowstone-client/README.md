@@ -20,7 +20,7 @@ ENDPOINT=https://replay.sillage.sh X_TOKEN=<token> PRINT_EVERY=100 node index.js
 | `X_TOKEN` | *(required)* | Sent as the `x-token` header |
 | `PROGRAM` | *(none)* | Restrict to txs touching a pubkey |
 | `PRINT_EVERY` | `1` | Print every Nth signature |
-| `SPEED` | `1` | `1` = original wall-clock pacing |
+| `SPEED` | `1` | `1` = original wall-clock pacing. Must be within `0.1`..`1000`, the range the reader accepts |
 | `FROM_SLOT` | *(oldest retained)* | Below the retained floor returns `OUT_OF_RANGE` |
 
 ## Volume, measured
@@ -47,6 +47,11 @@ At `SPEED=1` the replay is paced to the original chain wall-clock, so the run
 takes about 3m20s and signatures arrive at the rate they originally did. That
 pacing is the product claim; a fast run only proves the data is there.
 
+The summary reports the speed it measured — original chain time of what was
+streamed divided by how long it took to arrive, first transaction to last —
+next to the one requested. The two should agree; at very high `SPEED` the
+measured figure tops out at whatever the reader and the network can deliver.
+
 When the replay is exhausted and no new chunks arrive, the reader **closes the
 stream cleanly** after `follow_idle_timeout_secs`. That is the end-of-replay
 signal, not an error — the script prints a summary and exits 0.
@@ -60,6 +65,13 @@ Do **not** subscribe to accounts against a small box. Account chunks decode to
 unconditionally. The reader accepts and ignores it — archived chunks carry
 whatever commitment the writer captured. Rejecting it, as an earlier version
 did, locked out every off-the-shelf client.
+
+The client also raises `grpc-node.flow_control_window` from its 64KB default.
+HTTP/2 lets the server send one window per round trip, so the default caps a
+stream at about 64KB / RTT — roughly 1x of unfiltered mainnet over a 13ms link.
+Without it any `SPEED` above 1 quietly flattens out to that ceiling, and at 1x
+the replay runs with no headroom. Any consumer replaying faster than real time
+needs the same setting.
 
 `SPEED` rides in gRPC metadata (`x-replay-speed`) via an interceptor rather than
 in `SubscribeRequest`, so it stays an opt-in extension. A client that knows
