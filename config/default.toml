@@ -52,6 +52,7 @@ enabled = true
 speed_multiplier = 1.0
 lag_warn_ms = 5000
 lag_drop_ms = 30000
+spin_us = 0  # busy-wait the last N µs before each emit for sub-ms pacing; 0 = off, ~2000 to enable (costs CPU)
 
 [reader.metrics]
 enabled = true

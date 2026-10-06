@@ -3,6 +3,10 @@ use std::time::Duration;
 use sillage_common::config::PacingConfig;
 use tokio::time::Instant;
 
+/// Upper bound on `spin_us`. The spin blocks a runtime worker, so a typo in
+/// config must not be able to park one for seconds at a time.
+const MAX_SPIN_US: u64 = 10_000;
+
 /// Wall-clock pacer for a single customer's replay stream.
 ///
 /// The first message with a resolvable timestamp sets the anchor. All later
@@ -14,6 +18,7 @@ pub struct Pacer {
     speed_multiplier: f64,
     lag_warn: Duration,
     lag_drop: Duration,
+    spin: Duration,
     anchor: Option<(u64, Instant)>,
     last_warn: Option<Instant>,
 }
@@ -25,6 +30,7 @@ impl Pacer {
             speed_multiplier: cfg.speed_multiplier,
             lag_warn: Duration::from_millis(cfg.lag_warn_ms),
             lag_drop: Duration::from_millis(cfg.lag_drop_ms),
+            spin: Duration::from_micros(cfg.spin_us.min(MAX_SPIN_US)),
             anchor: None,
             last_warn: None,
         }
@@ -52,6 +58,27 @@ impl Pacer {
                 let scaled_ns = (delta_ns as f64 / self.speed_multiplier) as u64;
                 anchor_real + Duration::from_nanos(scaled_ns)
             }
+        }
+    }
+
+    /// Wait until `target`. With `spin_us` unset this is a plain timer sleep,
+    /// accurate to about a millisecond. With it set, the timer covers all but
+    /// the last `spin_us` and a busy-wait covers the rest, which lands within
+    /// tens of microseconds at the cost of a spinning worker.
+    pub async fn wait_until(&self, target: Instant) {
+        if self.spin.is_zero() {
+            tokio::time::sleep_until(target).await;
+            return;
+        }
+        if let Some(coarse) = target.checked_sub(self.spin) {
+            tokio::time::sleep_until(coarse).await;
+        }
+        // Spin on the OS clock: tokio's clock does not advance without an
+        // await when paused, and a spin never awaits.
+        let remaining = target.saturating_duration_since(Instant::now());
+        let deadline = std::time::Instant::now() + remaining;
+        while std::time::Instant::now() < deadline {
+            std::hint::spin_loop();
         }
     }
 
@@ -103,6 +130,7 @@ mod tests {
             speed_multiplier: 1.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let now = Instant::now();
@@ -124,6 +152,7 @@ mod tests {
             speed_multiplier: 1.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let anchor_real = Instant::now();
@@ -143,6 +172,7 @@ mod tests {
             speed_multiplier: 2.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let anchor_real = Instant::now();
@@ -163,6 +193,7 @@ mod tests {
             speed_multiplier: 1.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         pacer.target(None);
@@ -180,6 +211,7 @@ mod tests {
             speed_multiplier: 1.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let target = Instant::now() + Duration::from_secs(1);
@@ -193,6 +225,7 @@ mod tests {
             speed_multiplier: 1.0,
             lag_warn_ms: 100,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let target = Instant::now();
@@ -212,6 +245,7 @@ mod tests {
             speed_multiplier: 1.0,
             lag_warn_ms: 100,
             lag_drop_ms: 500,
+            spin_us: 0,
         });
 
         let target = Instant::now();
@@ -231,6 +265,7 @@ mod tests {
             speed_multiplier: 1.0,
             lag_warn_ms: 100,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let target = Instant::now();
@@ -250,5 +285,44 @@ mod tests {
             LagAction::Ok,
             "second warn within 10s should be suppressed"
         );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn wait_until_without_spin_reaches_target() {
+        let pacer = Pacer::from_config(&PacingConfig::default());
+        let target = Instant::now() + Duration::from_millis(5);
+        pacer.wait_until(target).await;
+        assert!(Instant::now() >= target);
+    }
+
+    #[tokio::test]
+    async fn wait_until_with_spin_is_not_early() {
+        let pacer = Pacer::from_config(&PacingConfig {
+            spin_us: 2_000,
+            ..PacingConfig::default()
+        });
+        let target = Instant::now() + Duration::from_millis(5);
+        pacer.wait_until(target).await;
+        assert!(Instant::now() >= target);
+    }
+
+    #[tokio::test]
+    async fn wait_until_with_spin_returns_for_past_target() {
+        let pacer = Pacer::from_config(&PacingConfig {
+            spin_us: 2_000,
+            ..PacingConfig::default()
+        });
+        let target = Instant::now();
+        tokio::time::sleep(Duration::from_millis(1)).await;
+        pacer.wait_until(target).await;
+    }
+
+    #[test]
+    fn spin_is_capped() {
+        let pacer = Pacer::from_config(&PacingConfig {
+            spin_us: u64::MAX,
+            ..PacingConfig::default()
+        });
+        assert_eq!(pacer.spin, Duration::from_micros(MAX_SPIN_US));
     }
 }

@@ -268,7 +268,7 @@ pub async fn drive_replay(
             histogram!(metrics::REPLAY_LAG_SECONDS).record((now - target).as_secs_f64());
         }
         tokio::select! {
-            _ = tokio::time::sleep_until(target) => {}
+            _ = pacer.wait_until(target) => {}
             _ = shutdown.cancelled() => {
                 if emitted > 0 {
                     let lag_avg_ms = lag_sum.as_secs_f64() * 1000.0 / emitted as f64;
@@ -1541,6 +1541,7 @@ mod tests {
             speed_multiplier: 1000.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let result = drive_replay(plan, &cache, &mut pacer, sender, shutdown)
@@ -1606,6 +1607,7 @@ mod tests {
             speed_multiplier: 1000.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let result = drive_replay(plan, &cache, &mut pacer, sender, shutdown)
@@ -1657,6 +1659,7 @@ mod tests {
                 speed_multiplier: 1000.0,
                 lag_warn_ms: 5_000,
                 lag_drop_ms: 30_000,
+                spin_us: 0,
             });
             drive_replay(plan, &cache, &mut pacer, sender, shutdown_clone).await
         });
@@ -1703,6 +1706,7 @@ mod tests {
             speed_multiplier: 1000.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
         let result = drive_replay(plan, &cache, &mut pacer, sender, shutdown).await;
         assert!(result.is_ok());
@@ -1737,6 +1741,7 @@ mod tests {
             speed_multiplier: 1000.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let result = drive_replay(plan, &cache, &mut pacer, sender, shutdown)
@@ -1766,6 +1771,7 @@ mod tests {
             speed_multiplier: 1000.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
 
         let result = drive_replay(plan, &cache, &mut pacer, sender, shutdown)
@@ -1912,6 +1918,7 @@ mod tests {
             speed_multiplier: 100.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
         let result = drive_replay(plan, &cache, &mut pacer, sender, shutdown)
             .await
@@ -1960,6 +1967,7 @@ mod tests {
                 speed_multiplier: 1000.0,
                 lag_warn_ms: 5_000,
                 lag_drop_ms: 30_000,
+                spin_us: 0,
             });
             drive_replay(plan, &cache, &mut pacer, sender, shutdown_clone).await
         });
@@ -2006,6 +2014,7 @@ mod tests {
             speed_multiplier: 1000.0,
             lag_warn_ms: 5_000,
             lag_drop_ms: 30_000,
+            spin_us: 0,
         });
         let result = drive_replay(plan, &cache, &mut pacer, sender, shutdown).await;
         assert!(result.is_ok());

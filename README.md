@@ -73,6 +73,13 @@ overridable by environment variable (`SILLAGE_<SECTION>__<FIELD>`), or point
 Speed is an opt-in extension carried in gRPC metadata as `x-replay-speed`, not in
 `SubscribeRequest`. A client that never sets it gets `1` — original pacing.
 
+Pacing rides the async timer by default, which emits each message up to a couple
+of milliseconds after its original offset. Set `reader.pacing.spin_us` (try
+`2000`) to busy-wait the last stretch before each emit and bring that down to
+microseconds, at the cost of a spinning CPU core per active subscriber. This
+tightens when the reader *sends*; what a remote client observes still includes
+the network.
+
 `commitment` is accepted and ignored: archived chunks carry whatever commitment
 the writer captured. Rejecting it would lock out every off-the-shelf client.
 
