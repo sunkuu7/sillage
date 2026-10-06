@@ -219,6 +219,12 @@ pub struct PacingConfig {
     pub lag_warn_ms: u64,
     #[serde(default = "default_pacing_lag_drop_ms")]
     pub lag_drop_ms: u64,
+    /// Busy-wait the last `spin_us` microseconds before each emit instead of
+    /// trusting the async timer, which only resolves to ~1ms. `0` disables it.
+    /// Burns CPU on a runtime worker for that long per paced message, so it is
+    /// opt-in; values below ~1500 leave the timer's lateness uncovered.
+    #[serde(default)]
+    pub spin_us: u64,
 }
 
 fn default_pacing_enabled() -> bool {
@@ -244,6 +250,7 @@ impl Default for PacingConfig {
             speed_multiplier: default_pacing_speed_multiplier(),
             lag_warn_ms: default_pacing_lag_warn_ms(),
             lag_drop_ms: default_pacing_lag_drop_ms(),
+            spin_us: 0,
         }
     }
 }
